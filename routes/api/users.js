@@ -5,11 +5,21 @@ const jwt = require("jsonwebtoken");
 
 const User = require("../../models/user");
 
+const { validatePassword, validateEmail } = require("../../validators/validators");
+
 router.post("/", async (req, res) => {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
     return res.status(400).send({ msg: "Please enter all fields" });
+  }
+
+  if (!validateEmail(email)) {
+    return res.status(400).send({ msg: "Invalid email address format specified" });
+  }
+
+  if (!validatePassword(password)) {
+    return res.status(400).send({ msg: "Password must be at least 8 characters in length and must contain at least 1 lowercase letter, 1 uppercase letter, 1 numeric digit, and 1 special character" });
   }
 
   const existingUser = await User.findOne({ email });
