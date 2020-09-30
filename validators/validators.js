@@ -1,5 +1,9 @@
 const validatePassword = (password) => {
-    const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+    // 1 special character
+    // 1 digit
+    // 1 lowercase character
+    // 1 uppercase character
+    const passwordRegex = /^(?=.*[^A-Za-z0-9])(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
 
     return passwordRegex.test(password);
 };
