@@ -29,9 +29,6 @@ router.get("/", middleAuth, async (req, res) => {
 router.post("/compress", middleAuth, async (req, res) => {
   const { longUrl, lastDate, customCode } = req.body;
 
-  console.log(validUrl.isUri(longUrl));
-  console.log(longUrl, lastDate);
-
   // base url = "http://localhost:5000"
   const baseUrl = process.env.BASE_URL;
   if (!validUrl.isUri(baseUrl)) {
@@ -43,7 +40,7 @@ router.post("/compress", middleAuth, async (req, res) => {
     urlCode = customCode;
 
     if (await Url.findOne({ code: urlCode })) {
-      res.status(409).send({ msg: "This code is already in use, try another code" });
+      return res.status(409).send({ msg: "This code is already in use, try another code" });
     };
 
   } else {
