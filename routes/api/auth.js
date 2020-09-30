@@ -7,7 +7,7 @@ const auth = require("../../middleware/auth");
 const User = require("../../models/user");
 
 router.post("/", async (req, res) => {
-  const { name, email, password } = req.body;
+  const { email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).send({ msg: "Please enter all fields" });

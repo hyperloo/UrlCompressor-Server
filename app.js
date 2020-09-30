@@ -11,13 +11,15 @@ const Url = require("./models/url");
 
 const app = express();
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 app.use(cors());
+
+require('dotenv').config();
 
 mongoose
   .connect(
-    `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0-jwfcs.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`,
+    process.env.MONGODB_URL,
     {
       useNewUrlParser: true,
       useUnifiedTopology: true,

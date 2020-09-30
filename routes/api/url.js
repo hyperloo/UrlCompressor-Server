@@ -27,15 +27,27 @@ router.get("/", middleAuth, async (req, res) => {
 });
 
 router.post("/compress", middleAuth, async (req, res) => {
-  const { longUrl, lastDate } = req.body;
+  const { longUrl, lastDate, customCode } = req.body;
 
-  // const baseUrl = "http://localhost:5000";
+  console.log(validUrl.isUri(longUrl));
+  console.log(longUrl, lastDate);
+
   const baseUrl = process.env.BASE_URL;
   if (!validUrl.isUri(baseUrl)) {
     return res.status(400).send({ msg: "Invalid Base Url" });
   }
 
-  const urlCode = shortId.generate();
+  let urlCode;
+  if (customCode) {
+    urlCode = customCode;
+
+    if (await Url.findOne({ code: urlCode })) {
+      res.status(409).send({ msg: "This code is already in use, try another code" });
+    };
+
+  } else {
+    urlCode = shortId.generate();
+  }
 
   if (validUrl.isUri(longUrl)) {
     try {
