@@ -32,6 +32,7 @@ router.post("/compress", middleAuth, async (req, res) => {
   console.log(validUrl.isUri(longUrl));
   console.log(longUrl, lastDate);
 
+  // base url = "http://localhost:5000"
   const baseUrl = process.env.BASE_URL;
   if (!validUrl.isUri(baseUrl)) {
     return res.status(400).send({ msg: "Invalid Base Url" });
