@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
+const helmet = require("helmet");
 const cors = require("cors");
 
 const url = require("./routes/api/url");
@@ -11,13 +12,21 @@ const Url = require("./models/url");
 
 const app = express();
 
+app.use(helmet.permittedCrossDomainPolicies());
+app.use(helmet.xssFilter());
+
+app.use(helmet.dnsPrefetchControl({ allow: true }));
+app.use(helmet.frameguard({ action: 'sameorigin' }));
+app.use(helmet.hidePoweredBy({ setTo: 'your dummy tech' }));
+app.use(helmet.hsts({ maxAge: 2592000 })); //30 days max age
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
 
 mongoose
   .connect(
-    `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0-jwfcs.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`,
+    `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@dev-cluster.fgoin.gcp.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`,
     {
       useNewUrlParser: true,
       useUnifiedTopology: true,
