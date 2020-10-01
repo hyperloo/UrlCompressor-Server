@@ -27,17 +27,17 @@ router.get("/", middleAuth, async (req, res) => {
 });
 
 router.post("/compress", middleAuth, async (req, res) => {
-  const { longUrl, lastDate } = req.body;
+  const { longUrl, lastDate, customCode } = req.body;
 
-  // const baseUrl = "http://localhost:5000";
+  // base url = "http://localhost:5000"
   const baseUrl = process.env.BASE_URL;
   if (!validUrl.isUri(baseUrl)) {
     return res.status(400).send({ msg: "Invalid Base Url" });
   }
 
-  const urlCode = shortId.generate();
-
   if (validUrl.isUri(longUrl)) {
+    
+    
     try {
       let url = await Url.findOne({ longUrl: longUrl });
 
@@ -46,6 +46,18 @@ router.post("/compress", middleAuth, async (req, res) => {
           .status(400)
           .send({ msg: "Compressed URL already exists", url: url.shortUrl });
       } else {
+        let urlCode;
+        if (customCode) {
+        urlCode = customCode;
+
+        if (await Url.findOne({ code: urlCode })) {
+          return res.status(409).send({ msg: "This code is already in use, try another code" });
+        };
+
+        } else {
+          urlCode = shortId.generate();
+        }
+        
         const shortUrl = baseUrl + "/" + urlCode;
 
         url = new Url({
