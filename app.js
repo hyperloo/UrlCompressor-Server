@@ -24,7 +24,7 @@ app.use(helmet.hsts({ maxAge: 2592000 })); //30 days max age
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-require("dotenv").config();
+// require("dotenv").config();
 
 mongoose
 	.connect(
