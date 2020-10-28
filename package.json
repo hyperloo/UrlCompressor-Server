@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "node -r dotenv/config app.js",
+    "start": "node app.js",
     "server": "nodemon app.js",
     "client": "npm start --prefix client"
   },
