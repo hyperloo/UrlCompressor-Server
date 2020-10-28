@@ -9,120 +9,154 @@ const Url = require("../../models/url");
 const User = require("../../models/user");
 
 router.get("/", middleAuth, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id)
-      .populate("shortenedUrl")
-      .exec();
-    if (!user) {
-      return res.status(400).json({ msg: "User does not exist" });
-    } else {
-      return res
-        .status(200)
-        .json({ msg: "User found", url: user.shortenedUrl });
-    }
-  } catch (err) {
-    console.log(err);
-    res.status(500).send({ msg: "Internal Server Error" });
-  }
+	try {
+		const user = await User.findById(req.user.id)
+			.populate("shortenedUrl")
+			.exec();
+		if (!user) {
+			return res.status(400).json({ msg: "User does not exist" });
+		} else {
+			return res
+				.status(200)
+				.json({ msg: "User found", url: user.shortenedUrl });
+		}
+	} catch (err) {
+		console.log(err);
+		res.status(500).send({ msg: "Internal Server Error" });
+	}
+});
+
+router.get("/code", middleAuth, async (req, res) => {
+	const { code } = req.query;
+
+	let urlCode;
+	console.log(req);
+
+	if (code) {
+		urlCode = code;
+
+		if (await Url.findOne({ code: urlCode })) {
+			return res.status(409).send({
+				present: true,
+				msg: "This code is already in use, try another code",
+			});
+		} else
+			return res
+				.status(200)
+				.send({ present: false, msg: `${code} is available` });
+	} else
+		return res
+			.status(409)
+			.send({ present: false, msg: "Enter a valid code to search" });
 });
 
 router.post("/compress", middleAuth, async (req, res) => {
-  const { longUrl, lastDate } = req.body;
+	const { longUrl, lastDate, code } = req.body;
 
-  // const baseUrl = "http://localhost:5000";
-  const baseUrl = process.env.BASE_URL;
-  if (!validUrl.isUri(baseUrl)) {
-    return res.status(400).send({ msg: "Invalid Base Url" });
-  }
+	const baseUrl = process.env.BASE_URL;
+	if (!validUrl.isUri(baseUrl)) {
+		return res.status(400).send({ msg: "Invalid Base Url" });
+	}
 
-  const urlCode = shortId.generate();
+	let urlCode;
+	if (code) {
+		urlCode = code;
 
-  if (validUrl.isUri(longUrl)) {
-    try {
-      let url = await Url.findOne({ longUrl: longUrl });
+		if (await Url.findOne({ code: urlCode })) {
+			return res
+				.status(409)
+				.send({ msg: "This code is already in use, try another code" });
+		}
+	} else {
+		urlCode = shortId.generate();
+	}
 
-      if (url) {
-        res
-          .status(400)
-          .send({ msg: "Compressed URL already exists", url: url.shortUrl });
-      } else {
-        const shortUrl = baseUrl + "/" + urlCode;
+	if (validUrl.isUri(longUrl)) {
+		try {
+			let url = await Url.findOne({ longUrl: longUrl });
 
-        url = new Url({
-          longUrl,
-          shortUrl,
-          urlCode,
-          lastDate: lastDate,
-          code: urlCode,
-          creator: req.user.id,
-        });
-        const newUrl = await url.save();
+			if (url) {
+				res
+					.status(400)
+					.send({ msg: "Compressed URL already exists", url: url.shortUrl });
+			} else {
+				const shortUrl = baseUrl + "/" + urlCode;
 
-        const user = await User.findById(req.user.id);
-        await user.shortenedUrl.push(newUrl._id);
-        await user.save();
+				url = new Url({
+					longUrl,
+					shortUrl,
+					lastDate: lastDate,
+					code: urlCode,
+					creator: req.user.id,
+					status: 1,
+				});
+				const newUrl = await url.save();
 
-        res
-          .status(200)
-          .json({ msg: "URL Compressed Successfully", url: newUrl });
-      }
-    } catch (err) {
-      console.log(err);
-      res.status(500).send({ msg: "Internal Server Error" });
-    }
-  } else {
-    res.status(401).send({ msg: "Invalid Long URL" });
-  }
+				const user = await User.findById(req.user.id);
+				await user.shortenedUrl.push(newUrl._id);
+				await user.save();
+
+				res
+					.status(200)
+					.json({ msg: "URL Compressed Successfully", url: newUrl });
+			}
+		} catch (err) {
+			console.log(err);
+			res.status(500).send({ msg: "Internal Server Error" });
+		}
+	} else {
+		res.status(400).send({ msg: "Invalid Long URL" });
+	}
 });
 
 router.delete("/:id", middleAuth, async (req, res) => {
-  const id = req.params.id;
+	const id = req.params.id;
 
-  try {
-    const url = await Url.findById(id);
+	try {
+		const url = await Url.findById(id);
 
-    if (req.user.id !== url.creator.toString()) {
-      return res.status(401).json({ msg: "Unauthorized User" });
-    }
+		if (req.user.id !== url.creator.toString()) {
+			return res.status(401).json({ msg: "Unauthorized User" });
+		}
 
-    const user = await User.findById(req.user.id);
+		const user = await User.findById(req.user.id);
 
-    for (let i = 0; i < user.shortenedUrl.length; i++) {
-      if (user.shortenedUrl[i].toString() === id) {
-        user.shortenedUrl.splice(i, 1);
-        break;
-      }
-    }
-    await user.save();
-    await url.deleteOne();
+		for (let i = 0; i < user.shortenedUrl.length; i++) {
+			if (user.shortenedUrl[i].toString() === id) {
+				user.shortenedUrl.splice(i, 1);
+				break;
+			}
+		}
+		await user.save();
+		await url.deleteOne();
 
-    res.status(200).json({ msg: "Short Url Deleted Successfully" });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ msg: "Internal Server Error" });
-  }
+		res.status(200).json({ msg: "Short Url Deleted Successfully" });
+	} catch (err) {
+		console.log(err);
+		res.status(500).json({ msg: "Internal Server Error" });
+	}
 });
 
 router.patch("/:id", middleAuth, async (req, res) => {
-  const id = req.params.id;
+	const id = req.params.id;
 
-  try {
-    const url = await Url.findById(id);
+	try {
+		const url = await Url.findById(id);
 
-    if (req.user.id !== url.creator.toString()) {
-      return res.status(401).json({ msg: "Unauthorized User" });
-    }
+		if (req.user.id !== url.creator.toString()) {
+			return res.status(401).json({ msg: "Unauthorized User" });
+		}
 
-    const { lastDate, status } = req.body;
+		const { lastDate, status } = req.body;
 
-    url.lastDate = lastDate;
-    url.status = status;
-    const newUrl = await url.save();
-    res.status(200).json({ msg: "URL updated successfully", url: newUrl });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ msg: "Internal Server Error" });
-  }
+		url.lastDate = lastDate;
+		url.status = status;
+		const newUrl = await url.save();
+		res.status(200).json({ msg: "URL updated successfully", url: newUrl });
+	} catch (err) {
+		console.log(err);
+		res.status(500).json({ msg: "Internal Server Error" });
+	}
 });
 
 module.exports = router;

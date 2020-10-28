@@ -11,18 +11,20 @@ const auth = require("./routes/api/auth");
 const Url = require("./models/url");
 
 const app = express();
+app.use(cors());
 
 app.use(helmet.permittedCrossDomainPolicies());
 app.use(helmet.xssFilter());
 
 app.use(helmet.dnsPrefetchControl({ allow: true }));
-app.use(helmet.frameguard({ action: 'sameorigin' }));
-app.use(helmet.hidePoweredBy({ setTo: 'your dummy tech' }));
+app.use(helmet.frameguard({ action: "sameorigin" }));
+app.use(helmet.hidePoweredBy({ setTo: "your dummy tech" }));
 app.use(helmet.hsts({ maxAge: 2592000 })); //30 days max age
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(cors());
+
+require("dotenv").config();
 
 mongoose
 	.connect(
@@ -69,7 +71,7 @@ app.get("/:code", async (req, res) => {
 			}
 			if (!url.status) {
 				return res
-					.status(200)
+					.status(404)
 					.json({ msg: "This url is temporarily out of service!" });
 			}
 

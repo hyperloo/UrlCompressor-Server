@@ -18,7 +18,7 @@ An App to manage `minified URLs` and `generate QR Codes` of the minified URLs.
 
 <br />
 
-[Click for Client Repo](https://github.com/HyperLoo/UrlCompressor-Client)
+[Click for Server Repo](https://github.com/HyperLoo/UrlCompressor-Server)
 
 ## **Login Section 🔑**
 
@@ -35,6 +35,8 @@ Click [here](https://jwt.io/introduction/) to read more ]_<br /><br />
 Here one can create a new `Compressed URL` with it's `Expiration Date` if needed or `No Expiration` by default.
 
 Also, one can see all the `compressed URLs` by him with the `Original URLs` and can copy it for sharing.
+
+One can also choose `Custom Code` for the compressed URL.
 
 <br/><br/>
 
